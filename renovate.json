@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "managers": ["gomod"],
+      "packagePatterns": [".*"],
+      "updateTypes": ["minor", "patch", "pin"],
+      "postUpdateOptions": [
+        "gomodTidy"
+      ]
+    }
+  ]
+}
