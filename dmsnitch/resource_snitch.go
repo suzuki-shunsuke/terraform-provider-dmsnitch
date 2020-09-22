@@ -116,7 +116,7 @@ func resourceSnitchCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode/100 == 2 { //nolint:gomnd
 		body, readerr := ioutil.ReadAll(resp.Body)
 
 		if readerr != nil {
