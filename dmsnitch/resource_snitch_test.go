@@ -145,7 +145,12 @@ resource "dmsnitch_snitch" "test" {
 }
 `,
 		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "name", "My Important Service"),
 			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "notes", "Description or other notes about this snitch."),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "interval", "daily"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "type", "basic"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "token", "xxx"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "url", "https://nosnch.in/xxx"),
 		),
 	}
 
@@ -224,7 +229,12 @@ resource "dmsnitch_snitch" "test" {
 }
 `,
 		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "name", "My Important Service"),
 			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "notes", "updated notes"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "interval", "daily"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "type", "basic"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "token", "xxx"),
+			resource.TestCheckResourceAttr("dmsnitch_snitch.test", "url", "https://nosnch.in/xxx"),
 		),
 	}
 
