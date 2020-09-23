@@ -3,6 +3,7 @@ package dmsnitch
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -122,8 +123,12 @@ func resourceSnitchCreate(d *schema.ResourceData, m interface{}) error {
 func resourceSnitchRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 	ctx := context.Background()
-	snitch, _, err := client.Get(ctx, d.Id()) //nolint:bodyclose
+	snitch, resp, err := client.Get(ctx, d.Id()) //nolint:bodyclose
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 
