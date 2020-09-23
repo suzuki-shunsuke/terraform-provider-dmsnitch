@@ -240,10 +240,9 @@ resource "dmsnitch_snitch" "test" {
 
 	provider := dmsnitch.Provider().(*schema.Provider)
 	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
-		return &dmsnitch.Client{
-			APIKey:     d.Get("api_key").(string),
-			HTTPClient: httpClient,
-		}, nil
+		client := dmsnitch.NewClient(d.Get("api_key").(string))
+		client.Client.HTTPClient = httpClient
+		return client, nil
 	}
 
 	resource.Test(t, resource.TestCase{
