@@ -76,6 +76,5 @@ Attribute | Description
 --- | ---
 `token`, `id` | The unique snitch ID
 `url`| The snitch checkin URL (for performing the check-in ping)
-`status` | Health status for the snitch
 
 For additional details about these fields and their purposes, see the [API documentation](https://deadmanssnitch.com/docs/api/v1). 

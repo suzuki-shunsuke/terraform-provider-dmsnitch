@@ -168,7 +168,6 @@ resource "dmsnitch_snitch" "test" {
   "interval": "daily",
 	"alert_type": "basic",
   "check_in_url": "https://nosnch.in/xxx",
-  "status": "pending",
   "token": "xxx",
 	"tags": ["one"]
 }`,

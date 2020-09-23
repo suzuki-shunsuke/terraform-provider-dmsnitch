@@ -12,7 +12,6 @@ type Snitch struct {
 	Token    string   `json:"token,omitempty"`
 	URL      string   `json:"check_in_url,omitempty"`
 	Name     string   `json:"name,omitempty"`
-	Status   string   `json:"status,omitempty"`
 	Interval string   `json:"interval,omitempty"`
 	Type     string   `json:"alert_type,omitempty"`
 	Notes    string   `json:"notes,omitempty"`
@@ -40,11 +39,6 @@ func resourceSnitch() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"notes": {
@@ -91,7 +85,6 @@ func newSnitchFromResource(d *schema.ResourceData) Snitch {
 		Name:     d.Get("name").(string),
 		Token:    d.Get("token").(string),
 		URL:      d.Get("url").(string),
-		Status:   d.Get("status").(string),
 		Interval: d.Get("interval").(string),
 		Type:     d.Get("type").(string),
 		Notes:    d.Get("notes").(string),
@@ -139,9 +132,6 @@ func resourceSnitchRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	if err := d.Set("url", snitch.URL); err != nil {
-		return err
-	}
-	if err := d.Set("status", snitch.Status); err != nil {
 		return err
 	}
 	if err := d.Set("interval", snitch.Interval); err != nil {
