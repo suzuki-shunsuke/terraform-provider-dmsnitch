@@ -1,12 +1,8 @@
 package dmsnitch
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"context"
 	"log"
-	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -83,14 +79,14 @@ func resourceSnitch() *schema.Resource {
 	}
 }
 
-func newSnitchFromResource(d *schema.ResourceData) *Snitch {
+func newSnitchFromResource(d *schema.ResourceData) Snitch {
 	tags := make([]string, 0, len(d.Get("tags").(*schema.Set).List()))
 
 	for _, item := range d.Get("tags").(*schema.Set).List() {
 		tags = append(tags, item.(string))
 	}
 
-	return &Snitch{
+	return Snitch{
 		Name:     d.Get("name").(string),
 		Token:    d.Get("token").(string),
 		URL:      d.Get("url").(string),
@@ -103,116 +99,77 @@ func newSnitchFromResource(d *schema.ResourceData) *Snitch {
 }
 
 func resourceSnitchCreate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*Client)
+	client := m.(Client)
 	snitch := newSnitchFromResource(d)
 
-	bytedata, err := json.Marshal(snitch)
+	ctx := context.Background()
+	respSnitch, _, err := client.Post(ctx, snitch) //nolint:bodyclose
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Post("snitches", bytes.NewBuffer(bytedata)) //nolint:bodyclose
-	if err != nil {
+	log.Printf("[DEBUG] ID received: %s", respSnitch.Token)
+	d.SetId(respSnitch.Token)
+	if err := d.Set("url", respSnitch.URL); err != nil {
 		return err
 	}
-
-	if resp.StatusCode/100 == 2 { //nolint:gomnd
-		body, readerr := ioutil.ReadAll(resp.Body)
-
-		if readerr != nil {
-			return readerr
-		}
-
-		decodeerr := json.Unmarshal(body, &snitch)
-
-		if decodeerr != nil {
-			return decodeerr
-		}
-
-		log.Printf("[DEBUG] ID received: %s", snitch.Token)
-		d.SetId(snitch.Token)
+	if err := d.Set("token", respSnitch.Token); err != nil {
+		return err
 	}
-
-	return resourceSnitchRead(d, m)
+	return nil
 }
 
 func resourceSnitchRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*Client)
-	resp, _ := client.Get(fmt.Sprintf("snitches/%s", d.Id())) //nolint:bodyclose
+	client := m.(Client)
+	ctx := context.Background()
+	snitch, _, err := client.Get(ctx, d.Id()) //nolint:bodyclose
+	if err != nil {
+		return err
+	}
 
-	if resp.StatusCode == http.StatusOK { //nolint:nestif
-		var snitch Snitch
-
-		body, readerr := ioutil.ReadAll(resp.Body)
-
-		if readerr != nil {
-			return readerr
-		}
-
-		decodeerr := json.Unmarshal(body, &snitch)
-
-		if decodeerr != nil {
-			return decodeerr
-		}
-
-		tagList := make([]string, 0, len(snitch.Tags))
-		tagList = append(tagList, snitch.Tags...)
-		if err := d.Set("name", snitch.Name); err != nil {
-			return err
-		}
-		if err := d.Set("token", snitch.Token); err != nil {
-			return err
-		}
-		if err := d.Set("url", snitch.URL); err != nil {
-			return err
-		}
-		if err := d.Set("status", snitch.Status); err != nil {
-			return err
-		}
-		if err := d.Set("interval", snitch.Interval); err != nil {
-			return err
-		}
-		if err := d.Set("type", snitch.Type); err != nil {
-			return err
-		}
-		if err := d.Set("notes", snitch.Notes); err != nil {
-			return err
-		}
-		if err := d.Set("tags", tagList); err != nil {
-			return err
-		}
+	if err := d.Set("name", snitch.Name); err != nil {
+		return err
+	}
+	if err := d.Set("token", snitch.Token); err != nil {
+		return err
+	}
+	if err := d.Set("url", snitch.URL); err != nil {
+		return err
+	}
+	if err := d.Set("status", snitch.Status); err != nil {
+		return err
+	}
+	if err := d.Set("interval", snitch.Interval); err != nil {
+		return err
+	}
+	if err := d.Set("type", snitch.Type); err != nil {
+		return err
+	}
+	if err := d.Set("notes", snitch.Notes); err != nil {
+		return err
+	}
+	if err := d.Set("tags", snitch.Tags); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func resourceSnitchUpdate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*Client)
+	client := m.(Client)
 	snitch := newSnitchFromResource(d)
 
-	var jsonBuffer []byte
-
-	jsonPayload := bytes.NewBuffer(jsonBuffer)
-	enc := json.NewEncoder(jsonPayload)
-	if err := enc.Encode(snitch); err != nil {
+	ctx := context.Background()
+	if _, err := client.Patch(ctx, d.Id(), snitch); err != nil { //nolint:bodyclose
 		return err
 	}
 
-	id := d.Id()
-
-	_, err := client.Patch(fmt.Sprintf("snitches/%s", id), jsonPayload) //nolint:bodyclose
-	if err != nil {
-		return err
-	}
-
-	return resourceSnitchRead(d, m)
+	return nil
 }
 
 func resourceSnitchDelete(d *schema.ResourceData, m interface{}) error {
-	id := d.Id()
-
-	client := m.(*Client)
-	_, err := client.Delete(fmt.Sprintf("snitches/%s", id)) //nolint:bodyclose
-
+	ctx := context.Background()
+	client := m.(Client)
+	_, err := client.Delete(ctx, d.Id()) //nolint:bodyclose
 	return err
 }
