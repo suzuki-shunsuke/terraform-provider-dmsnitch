@@ -11,7 +11,7 @@ jobs:
         go-version: '1.15.2'
     - run: go mod download
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v4
       with:
         version: v1.31 # don't specify patch version
     - name: test
